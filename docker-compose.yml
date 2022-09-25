@@ -1,0 +1,70 @@
+version: "3"
+
+networks:
+  go-grpc-network:
+    driver: bridge
+volumes:
+  db-site:
+    driver_opts:
+      o: bind
+      device: ./postgres-db/:/var/lib/postgresql/data/
+      type: none
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: c-postgres
+    hostname: postgres
+    ports:
+      - "2345:5432"
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=admin123
+    volumes:
+      - db-site
+    networks:
+      - go-grpc-network
+  api-gateway:
+    build:
+      dockerfile: Dockerfile
+      context: ./go-grpc-gateway/
+    container_name: c-gateway
+    hostname: gateway
+    restart: always
+    ports:
+      - "3000:3000"
+    networks:
+      - go-grpc-network
+  api-auth:
+    build:
+      dockerfile: Dockerfile
+      context: ./go-grpc-auth/
+    container_name: c-auth
+    hostname: auth
+    restart: always
+    ports:
+      - "50051:50051"
+    networks:
+      - go-grpc-network
+  api-product:
+    build:
+      dockerfile: Dockerfile
+      context: ./go-grpc-product/
+    container_name: c-product
+    hostname: product
+    restart: always
+    ports:
+      - "50052:50052"
+    networks:
+      - go-grpc-network
+  api-order:
+    build:
+      dockerfile: Dockerfile
+      context: ./go-grpc-order/
+    container_name: c-order
+    hostname: order
+    restart: always
+    ports:
+      - "50053:50053"
+    networks:
+      - go-grpc-network
